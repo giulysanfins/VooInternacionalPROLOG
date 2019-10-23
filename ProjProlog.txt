@@ -1,0 +1,111 @@
+%voo(Origem,Destino,código,partida,(dia_chegada,horario_chegada), número_de_escalas,
+%companhia,[dias]).
+
+%gol, tam, latam
+
+%Sao Paulo
+voo(sao_paulo,cidade_do_mexico,cm700,12:00,(mesmo,23:00),1,gol,[seg,qua,sex,sab,dom]).
+voo(sao_paulo,cidade_do_mexico,cm700,15:00,(mesmo,23:00),1,tam,[seg,qua,sex,sab,dom]).
+
+voo(sao_paulo,nova_york,jj8180,23:00,(seguinte,7:50),0,latam,[seg,ter,qua,sab,dom]).
+voo(sao_paulo,lisboa,tp84,00:40,(mesmo,14:30),0,tam,[qui,sex,sab,dom]).
+voo(sao_paulo,madrid,la8064,22:55,(seguinte,5:15),0,latam,[seg,ter,sab,dom]).
+voo(sao_paulo,londres,la8084,23:50,(seguinte,15:15),0,gol,[seg,qui,sex,sab,dom]).
+voo(sao_paulo,paris,g31524,12:30,(mesmo,20:30),1,gol,[seg,qua,sex,dom]).
+
+%Mexico
+voo(cidade_do_mexico,nova_york,vb100,6:15,(mesmo,12:30),0,gol,[seg,ter,qua,sex,sab,dom]).
+voo(cidade_do_mexico,madrid,aa1526,12:30,(seguinte,9:05),0,latam,[seg,ter,qua,qui,sex,dom]).
+
+%New York
+voo(nova_york,londres,dl3,23:00,(seguinte,11:10),0,tam,[seg,qua,sex,sab,dom]).
+
+
+%Londres
+voo(londres,lisboa,tp1363,6:00,(mesmo,8:35),0,tam,[seg,ter,qui,sex,sab,dom]).
+voo(londres,paris,ba322,17:20,(mesmo,19:35),0,gol,[ter,qua,sex,sab,dom]).
+voo(londres,estocolmo,ba780,13:20,(mesmo,16:55),0,latam,[seg,ter,qui,sex,dom]).
+
+%Madrid
+voo(madrid,paris,u23908,20:40,(mesmo,22:50),0,latam,[seg,ter,qua,sex,sab,dom]).
+voo(madrid,roma,vy6128,16:30,(mesmo,19:00),0,tam,[qua,qui,sex,sab,dom]).
+voo(madrid,frankfurt,fr1679,19:25,(mesmo,21:55),0,gol,[seg,qua,qui,sex,dom]).
+
+%Frankfurt
+voo(frankfurt,estocolmo,lh806,13:00,(mesmo,15:05),0,tam,[qua,qui,sex,sab,dom]).
+voo(frankfurt,roma,lh242,21:50,(mesmo,23:40),0,gol,[seg,qua,sex,dom]).
+
+%%teste exercicio 1
+%voo_direto(sao_paulo,madrid,tam,qua,Horário).
+
+%teste exercicio 2
+%filtra_voo_dia_semana(sao_paulo,madrid,seg,HorarioSaida,HorarioChegada,Companhia).
+
+pertence(X,[X|Cauda]).
+pertence(X,[Cabeca|Cauda]):-
+pertence(X,Cauda).
+
+
+%exercicio 1
+ voo_direto(Origem, Destino, Companhia ,Dia, Horário):-
+    voo(Origem,Destino,_,Horário,_,0,Companhia,Xdia), pertence(Dia,Xdia).
+
+
+%exercicio 2
+filtra_voo_dia_semana(Origem,Destino, DiaSemana,
+                      HorarioSaida,HorarioChegada,Companhia):-
+    voo(Origem,Destino,_,HorarioSaida,(_,HorarioChegada),_,Companhia,XDiaSemana), pertence(DiaSemana,XDiaSemana).
+
+
+%exercicio 3
+roteiro(Origem,Destino,[L]):-
+    voo(Origem, Destino, L, _,_,_,_,_).
+roteiro(Origem,Destino,[L|Cauda]):- voo(Origem, X, L, _,_,_,_,_), roteiro(X, Destino, Cauda).
+
+%exercicio 4
+
+% vôo(origem,destino,código,partida,(dia_chegada,horario_chegada), número_de_escalas,
+%companhia,[dias]).
+
+%menorDuracao(Origem,Destino,DiaChegada,HorarioPartida,HorarioChegada,Companhia)
+%retorno: diasemana, horariosaida, horariochegada, companhia
+
+
+
+
+calcularTempo(Origem,Destino,Result):-
+    voo(Origem,Destino,_,HoraSaida:MinutoSaida,(Dia,HoraChegada:MinutoChegada),_,_,_),
+    (Dia = mesmo, Saida is HoraSaida*60 + MinutoSaida,
+     Chegada is HoraChegada*60 + MinutoChegada,
+    Result is Chegada - Saida);
+    voo(Origem,Destino,_,HoraSaida:MinutoSaida,(Dia,HoraChegada:MinutoChegada),_,_,_),
+    (Saida is HoraSaida*60 + MinutoSaida,
+     Chegada is HoraChegada*60 + MinutoChegada,
+     Result is 1440 - Saida + Chegada).
+
+
+
+menorDuracao(Origem,Destino,HorarioSaida,HorarioChegada,Dia,Companhia):-
+    findall(Result,calcularTempo(Origem,Destino,Result), Lista),
+    findall(Codigo,voo(Origem,Destino,Codigo,_,_,_,_,_), TCodigo),
+    minimoValor(Lista,Retorno),
+    procuraVoo(Lista,Retorno,TCodigo,CodVoo).%Compara o o tempos em minutos e a cada recursao reduzir a cabeca da
+                                             %lista de tcodigo.
+
+  % Hora is (Retorno // 60),
+  %  Minutos is (Retorno mod 60). % mod é modulo 
+
+percorreLista([Cabeca|Cauda],Retorno,[Cod|Cauda2],CodVoo):-
+    Cabeca =:= Retorno,
+    CodVoo = Cod.
+
+percorreLista([Cabeca|Cauda],Retorno,[Cod|Ultimo],CodVoo):-
+    percorreLista(Cauda,Retorno,Ultimo,CodVoo).
+
+
+
+menor(X,Y,Z):-
+    Z is X,
+    X<Y;
+    Z is Y,
+    Y<X.
